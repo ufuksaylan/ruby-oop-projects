@@ -58,6 +58,7 @@ class Game
     @player1 = Player.new(get_name(1), get_marker)
     @player2 = Player.new(get_name(2), get_marker(@player1.marker))
     @board = Board.new
+    @count = 0
   end
 
   def get_marker(other_marker = 'q')
@@ -73,13 +74,18 @@ class Game
 
   def play
     @board.print_array
-    9.times do
+    5.times do
       @board.array[mark_array(@player1).to_i - 1] = @player1.marker
       if @board.check_winner
         @player1.win
         break
       end
       @board.print_array
+
+      if @count == 9
+        puts 'tie'
+        break
+      end
 
       @board.array[mark_array(@player2).to_i - 1] = @player2.marker
       if @board.check_winner
@@ -97,6 +103,7 @@ class Game
       error_message
       index = gets.chomp
     end
+    @count += 1
     index
   end
 
