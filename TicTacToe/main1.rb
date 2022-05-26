@@ -5,82 +5,55 @@ class Board
 
   def initialize
     @array = Array(1..9)
-    @occupied_indexes = Array.new
-  end 
+  end
 
-  def check_winner(player)
+  def check_winner
     # check horizontal wins
-    player.count = 0
-    0.step(6, 3) do |i|
-      i.upto(i + 2) do |j|
-        player.count += 1 if @array[j] == player.marker
-      end
-    end
-    if player.count == 3
-      return true
-    end 
-
-    player.count = 0
-    # check vertical wins
-    0.upto(2) do |i|
-      i.step(i+6, 3) do |j|
-        player.count += 1 if @array[j] == player.marker
-      end
-    end
-    if player.count == 3
+    if check_case(0, 1, 2) || check_case(3, 4, 5) || check_case(6, 7, 8) ||
+    check_case(0, 3, 6) || check_case(1, 4, 7) || check_case(2, 5, 8) ||
+    check_case(0, 4, 8) || check_case(2, 4, 6)
       return true
     end
 
-    # don't forget horizontal ones here 
-    if (@array[0] == player.marker &&  @array[4] == player.marker && @array[4] == player.marker)
-      return true
-    end 
-
-    if (@array[2] == player.marker &&  @array[4] == player.marker && @array[6] == player.marker)
-      return true
-    end 
-    
-    return false
+    false
   end
 
   def print_array
-    0.step(6,3) do |i|
-      i.step(i+2, 1) do |j|
+    0.step(6, 3) do |i|
+      i.step(i + 2, 1) do |j|
         print "| #{@array[j]} "
       end
-        print "| \n"
+      print "| \n"
+    end
+  end
+
+  private
+
+  def check_case(index1, index2, index3)
+    if @array[index1] == @array[index2] && @array[index2] == @array[index3]
+      true
+    else
+      false
     end
   end
 end
 
 class Player
   attr_reader :marker, :name
-  attr_accessor :count
 
   def initialize(name, marker)
     @name = name
     @marker = marker
-    @count = 0
   end
 
   def win
     puts "GAME OVER! #{@name} is the winner!"
   end
-
-  def mark_array
-    puts "#{@name}, please enter a number (0-9) that is available to place an '#{@marker}'"
-    index = gets.chomp
-    while (index.length != 1) || !index.match?(/[[:digit:]]/ || index > 9 || index < 0)
-      puts 'Sorry, that is an invalid answer. Please, try again.'
-      index = gets.chomp
-    end
-    index
-  end
 end
 
-class Game 
-  
+class Game
   attr_reader :board
+
   def initialize
     @player1 = Player.new(get_name(1), get_marker)
     @player2 = Player.new(get_name(2), get_marker(@player1.marker))
@@ -98,6 +71,35 @@ class Game
     marker
   end
 
+  def play
+    @board.print_array
+    9.times do
+      @board.array[mark_array(@player1).to_i - 1] = @player1.marker
+      if @board.check_winner
+        @player1.win
+        break
+      end
+      @board.print_array
+
+      @board.array[mark_array(@player2).to_i - 1] = @player2.marker
+      if @board.check_winner
+        @player2.win
+        break
+      end
+      @board.print_array
+    end
+  end
+
+  def mark_array(player)
+    puts "#{player.name}, please enter a number (0-9) that is available to place an '#{player.marker}'"
+    index = gets.chomp
+    while !@board.array.include?(index.to_i)
+      error_message
+      index = gets.chomp
+    end
+    index
+  end
+
   def error_message
     puts 'Sorry, that is an invalid answer. Please, try again.'
   end
@@ -106,32 +108,14 @@ class Game
     puts "What is the name of player #{i}?"
     gets.chomp
   end
-
-  def play
-    @board.print_array
-    9.times do
-      @board.array[@player1.mark_array.to_i - 1] = @player1.marker
-      if @board.check_winner(@player1)
-        @player1.win
-        break
-      end
-
-      @board.array[@player2.mark_array.to_i - 1] = @player2.marker
-      if @board.check_winner(@player2)
-        @player2.win
-        break
-      end
-      @board.print_array
-      
-    end
-  end
 end
 
-# board = Board.new 
-# board.print_array
-# 0.upto(6) do |i|
-#   puts i
-# end 
+status = true
 
-game = Game.new
-game.play
+while status
+  game = Game.new
+  game.play
+  puts "Would you like to play a new game? Press 'y' for yes or 'n' for no."
+  answer = gets.chomp
+  status = false if answer.downcase! != 'y'
+end
